@@ -57,7 +57,7 @@ tr.sel td{background:#fdf3ec}
 .card .note{font-size:11px;color:var(--muted);margin-top:2px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media (max-width:1000px){.two{grid-template-columns:1fr}}
-@media (max-width:760px){.app{flex-direction:column}nav{width:100%;height:auto;position:static}main{padding:16px}}
+
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
 .kv th{width:130px}
 .bar-row{display:grid;grid-template-columns:110px 1fr 120px;gap:8px;align-items:center;margin:6px 0;font-size:12px}
@@ -118,13 +118,67 @@ tr.sel td{background:#fdf3ec}
 .loginbox .fld{margin-bottom:10px}
 .loginbox .err{color:var(--ng);font-size:12px;min-height:18px}
 /* print */
+/* ---- スマートフォン対応 ---- */
+.menu-btn{display:none}
+@media (max-width:760px){
+  body{font-size:15px}
+  .app{flex-direction:column}
+  nav{width:100%;height:auto;position:sticky;top:0;z-index:40;padding:0;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  nav h1{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;padding:10px 14px;border:0;font-size:14px}
+  nav h1 small{display:none}
+  .menu-btn{display:inline-block;background:#2b3833;color:#fff;border:1px solid #4a5a53;padding:6px 12px;font-size:13px;white-space:nowrap}
+  #nav,nav .me{display:none}
+  nav.open #nav{display:block;max-height:65vh;overflow:auto;border-top:1px solid #34413c}
+  nav.open .me{display:block;padding:10px 14px 14px;margin:0}
+  nav a{padding:11px 18px}
+  main{padding:12px 12px 50px}
+  h2{font-size:18px}
+  .demo{font-size:11px;padding:6px 10px}
+  .two{grid-template-columns:1fr}
+  .grid{grid-template-columns:1fr!important}
+  .cards{grid-template-columns:1fr 1fr;gap:8px}
+  .card{padding:10px}.card .value{font-size:18px}
+  .toolbar select,.toolbar input{width:100%!important}
+  .toolbar>button,.toolbar>a{flex:1 1 auto}
+  input,select,textarea{font-size:16px}
+  button.small{padding:6px 11px;font-size:13px}
+  /* 一覧表はスマホではカード表示(各項目に見出しを付けて縦に並べる) */
+  .tablewrap{overflow:visible;border:0;background:transparent}
+  table.m-card,table.m-card tbody,table.m-card tr,table.m-card td{display:block;width:100%}
+  table.m-card thead{display:none}
+  table.m-card tr{background:#fff;border:1px solid var(--line);border-radius:8px;margin-bottom:10px;padding:6px 12px}
+  table.m-card tr.sel{border-color:var(--accent)}
+  table.m-card tr.sel td{background:transparent}
+  table.m-card td{position:relative;border:0;border-bottom:1px dashed #eceeea;padding:6px 0 6px 36%;white-space:normal;text-align:left;min-width:0;min-height:30px}
+  table.m-card td:last-child{border-bottom:0}
+  table.m-card td::before{content:attr(data-label);position:absolute;left:0;top:7px;width:33%;font-size:11px;color:var(--muted);font-weight:normal}
+  table.m-card td.nolabel{padding-left:0}
+  table.m-card td.nolabel::before{display:none}
+  table.m-card td.num{text-align:left}
+  table.m-card td.empty{padding-left:0;text-align:center}
+  .items table.m-card input,.items table.m-card select{width:100%}
+  .est-doc,.totals,.kv{overflow-x:auto}
+  .est-doc table{font-size:12px}
+  .est-doc th,.est-doc td{padding:6px 4px;white-space:normal}
+  .est-doc td.num{white-space:nowrap}
+  .bar-row{grid-template-columns:80px 1fr 80px}
+  .draftbar button{flex:1 1 100%}
+  /* 入力画面はスマホでは全画面 */
+  .modal{padding:0}
+  .dialog{border-radius:0;min-height:100%;max-width:none}
+  .dialog .body{padding:12px}
+  .dialog footer{position:sticky;bottom:0;background:#fff;flex-wrap:wrap}
+  .dialog footer .err{flex:1 1 100%}
+  .dialog footer button{flex:1}
+  .loginbox{padding:18px 16px}
+}
 </style>
 </head>
 <body>
 <div id="login"></div>
 <div class="app" style="display:none">
   <nav>
-    <h1>解体工事 販売管理<small>Demolition Sales Management (Demo)</small></h1>
+    <h1><span>解体工事 販売管理<small>Demolition Sales Management (Demo)</small></span><button class="menu-btn" onclick="this.closest('nav').classList.toggle('open')">☰ メニュー</button></h1>
     <div id="nav"></div>
     <div class="me" id="me"></div>
   </nav>
@@ -421,12 +475,21 @@ const projLink = p => `<a class="nolink" onclick="openDetail('${p.dealId}')">${e
 
 /* ============ モーダル(汎用フォーム) ============ */
 let onModalCancel = null;
+// スマホ表示用:表の各セルに見出し(th)の文字を data-label として付ける
+function mobileLabels(root) {
+  root.querySelectorAll('table').forEach(t => {
+    if (t.closest('.est-doc') || t.closest('.totals') || t.classList.contains('kv') || !t.tHead) return;
+    const heads = Array.from(t.tHead.rows[0].cells).map(c => c.textContent.trim());
+    t.classList.add('m-card');
+    Array.from(t.tBodies).forEach(tb => Array.from(tb.rows).forEach(r => { let i = 0; Array.from(r.cells).forEach(c => { const span = c.colSpan || 1; const lb = span > 1 ? '' : (heads[i] || ''); c.dataset.label = lb; if (!lb) c.classList.add('nolabel'); i += span; }); }));
+  });
+}
 function openModal(title, html, onSave, saveLabel) {
   $('#modal-title').textContent = title; $('#modal-body').innerHTML = html; $('#modal-err').textContent = '';
   $('#modal-body').oninput = null; $('#modal-body').onchange = null; onModalCancel = null;
   const btn = $('#modal-save'); btn.textContent = saveLabel || '保存'; btn.disabled = false;
   btn.onclick = async () => { $('#modal-err').textContent = ''; const r = await onSave(); if (r !== false) { closeModal(); save(); render(); } };
-  $('#modal').classList.add('open');
+  $('#modal').classList.add('open'); mobileLabels($('#modal-body'));
   const first = $('#modal-body input:not([type=radio]), #modal-body select'); if (first) first.focus();
 }
 function closeModal(cancelled) { $('#modal').classList.remove('open'); window._est = null; if (cancelled && onModalCancel) { const f = onModalCancel; onModalCancel = null; f(); } }
@@ -468,7 +531,7 @@ function renderLogin() {
     <label class="fld"><span>パスワード</span><input id="l-pw" type="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')act.login()"></label>
     <div class="err" id="l-err"></div><button class="primary" style="width:100%" onclick="act.login()">ログイン</button>
     <h3 style="margin:22px 0 6px;font-size:13px">デモ用アカウント(パスワードはすべて demo1234)</h3>
-    <div class="tablewrap"><table><tbody>${demo.map(u => `<tr><td>${esc(u.loginId)}</td><td>${esc(u.name)}</td><td>${badge(u.role)}</td><td><button class="small" onclick="$('#l-id').value='${esc(u.loginId)}';$('#l-pw').value='demo1234';act.login()">このアカウントで入る</button></td></tr>`).join('')}</tbody></table></div>`
+    <div class="tablewrap"><table class="demo-acc"><tbody>${demo.map(u => `<tr><td style="white-space:normal"><b>${esc(u.loginId)}</b> ${esc(u.name)} ${badge(u.role)}</td><td style="text-align:right;width:1%"><button class="small" onclick="$('#l-id').value='${esc(u.loginId)}';$('#l-pw').value='demo1234';act.login()">このIDで入る</button></td></tr>`).join('')}</tbody></table></div>`
   : `
     <div class="grid" style="grid-template-columns:1fr 1fr">
     <label class="fld"><span>氏名 *</span><input id="r-name"></label>
@@ -930,6 +993,7 @@ const DOC_CSS = `body{margin:0;font-family:"Yu Gothic","YuGothic","Meiryo","Hira
 .doc .num{text-align:right;font-variant-numeric:tabular-nums}
 .doc tr.cathead td{background:#f2f2f2;font-weight:700}
 .doc .fine{font-size:10.5px;margin-top:12px}
+@media screen and (max-width:800px){.bar{flex-wrap:wrap;padding:8px 10px}.bar button{flex:1;white-space:nowrap}.bar .hint,.bar>span:not(.warn){display:none}.doc .row>div{text-align:left!important}.sheet{width:auto;min-height:0;margin:8px;padding:16px 12px}.doc{font-size:12px}.doc h1{font-size:19px;letter-spacing:.3em}.doc .row{flex-direction:column;gap:6px}.doc .to{min-width:0}.doc .from{text-align:left}.doc .big{font-size:15px}.doc th,.doc td{padding:3px 5px;font-size:11px}}
 @page{size:A4;margin:0}
 @media print{body{background:#fff}.bar{display:none}.sheet{margin:0;box-shadow:none;width:auto;min-height:0}}`;
 const fromBlock = (code) => { const b = branchOf(code); return `<div class="from"><b>${esc(COMPANY.name)}</b><br>${esc(b.name)}<br>${esc(b.addr)}<br>${esc(b.tel)}<br>${esc(COMPANY.permit)}</div>`; };
@@ -980,7 +1044,7 @@ function writeDocTab(w, kind, id) {
     : info.open ? `<span class="warn">未発行の見積です(下書き)</span><button onclick="issueEst()">発行する(見積日を本日 ${jpDate(today())} で確定)</button><span class="hint">発行後はこの版を変更できません(変更は再見積で行います)</span>`
     : `<span class="warn">未発行の見積です。受注・失注済の案件のため発行できません</span>`;
   w.document.open();
-  w.document.write(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>${esc(info.title)}</title><style>${DOC_CSS}
+  w.document.write(`<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(info.title)}</title><style>${DOC_CSS}
 .bar button.sub{background:#fff;color:#1f2a26}.bar .hint{font-size:11px;color:#b9c6c0}.bar .warn{background:#f7e1e1;color:#7d2323;padding:3px 10px;border-radius:4px}
 .sheet{position:relative}${info.issued ? '' : '.sheet:after{content:"未発行";position:absolute;top:38%;left:0;right:0;text-align:center;font-size:110px;color:rgba(200,0,0,.08);transform:rotate(-20deg);pointer-events:none;font-weight:700}'}</style></head>
 <body><div class="bar">${bar}</div><div class="sheet"><div class="doc">${info.inner}</div></div>
@@ -1437,11 +1501,11 @@ function parseHash() { const h = decodeURIComponent(location.hash.slice(1)); if 
 function go(v) { if (location.hash.slice(1) !== v) location.hash = v; else { view = parseHash(); render(); } window.scrollTo(0, 0); }
 function render() {
   if (!ME) { renderLogin(); return; }
-  $('#login').classList.remove('open'); $('.app').style.display = '';
+  $('#login').classList.remove('open'); $('.app').style.display = ''; $('nav').classList.remove('open');
   $('#nav').innerHTML = Object.entries(VIEWS).filter(([k]) => k !== 'logs' || canSeeLogs()).map(([k, v]) => v ? `<a class="${k === view ? 'active' : ''}" onclick="go('${k}')">${v[0]}${k === 'trash' && S.estimates.some(e => e.trashed) ? ` <span class="badge b-gray">${S.estimates.filter(e => e.trashed).length}</span>` : ''}</a>` : '<div class="sep"></div>').join('');
   $('#me').innerHTML = `<b>${esc(ME.name)}</b>${badge(ME.role)} <span class="muted" style="color:#9fb0a8">${esc(branchOf(ME.branch).name)}</span><br><button onclick="act.logout()">ログアウト</button>`;
-  if (view === 'detail') { $('#view').innerHTML = vDetail(); document.title = (dealOf(detailId).no || '案件照会') + ' | 解体工事 販売管理システム(デモ)'; return; }
-  $('#view').innerHTML = VIEWS[view][1]();
+  if (view === 'detail') { $('#view').innerHTML = vDetail(); mobileLabels($('#view')); document.title = (dealOf(detailId).no || '案件照会') + ' | 解体工事 販売管理システム(デモ)'; return; }
+  $('#view').innerHTML = VIEWS[view][1](); mobileLabels($('#view'));
   document.title = VIEWS[view][0] + ' | 解体工事 販売管理システム(デモ)';
 }
 window.addEventListener('hashchange', () => { view = parseHash(); closeModal(); render(); window.scrollTo(0, 0); });
