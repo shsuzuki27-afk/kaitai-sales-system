@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>解体工事 販売管理システム(デモ)</title>
+<style>
+:root{--bg:#f4f5f2;--panel:#fff;--ink:#1f2421;--muted:#6b716c;--line:#dfe2dc;--accent:#c2551f;--accent2:#2f5d50;--warn:#b7791f;--ok:#2f7a4f;--ng:#a33;}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic UI","Meiryo",sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5}
+.app{display:flex;min-height:100vh}
+nav{width:220px;background:#1f2a26;color:#e8ebe6;padding:16px 0;flex-shrink:0;position:sticky;top:0;height:100vh;overflow:auto}
+nav h1{font-size:15px;padding:0 18px 14px;margin:0 0 8px;border-bottom:1px solid #34413c;line-height:1.4}
+nav h1 small{display:block;color:#9fb0a8;font-weight:normal;font-size:11px;margin-top:2px}
+nav a{display:block;padding:10px 18px;color:#cfd8d3;text-decoration:none;cursor:pointer;border-left:3px solid transparent}
+nav a:hover{background:#26332e}
+nav a.active{background:#2b3833;color:#fff;border-left-color:var(--accent)}
+nav .flow{font-size:11px;color:#8d9c95;padding:14px 18px;line-height:1.7}
+main{flex:1;padding:22px 28px 60px;min-width:0}
+.demo{background:#fff4e5;border:1px solid #f0d2a8;color:#7a4a12;padding:8px 12px;border-radius:6px;margin-bottom:16px;font-size:12px}
+h2{margin:0 0 4px;font-size:20px}
+h3{font-size:15px;margin:22px 0 10px}
+.lead{color:var(--muted);margin:0 0 16px;font-size:13px}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+button,select,input,textarea{font:inherit}
+button{padding:7px 14px;border-radius:6px;border:1px solid #cfd3cc;background:#fff;cursor:pointer;color:var(--ink)}
+button:hover{background:#f2f3f0}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{background:#a9471a}
+button.small{padding:3px 9px;font-size:12px}
+button.danger{color:var(--ng)}
+button:disabled{opacity:.45;cursor:not-allowed}
+select,input,textarea{padding:6px 8px;border:1px solid #cfd3cc;border-radius:5px;background:#fff;width:100%}
+.toolbar select{width:auto}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+th{background:#eef0ec;font-weight:600;font-size:12px;color:#444}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+td.wrap{white-space:normal;min-width:180px}
+td .sub{display:block;font-size:11px;color:var(--muted)}
+.ops{display:flex;gap:4px;flex-wrap:wrap}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+.card .label{font-size:12px;color:var(--muted)}
+.card .value{font-size:22px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.card .note{font-size:11px;color:var(--muted);margin-top:2px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:1000px){.two{grid-template-columns:1fr}}
+@media (max-width:760px){.app{flex-direction:column}nav{width:100%;height:auto;position:static}main{padding:16px}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.bar-row{display:grid;grid-template-columns:110px 1fr 120px;gap:8px;align-items:center;margin:6px 0;font-size:12px}
+.bar-track{background:#eef0ec;border-radius:4px;height:16px;overflow:hidden}
+.bar{height:100%;border-radius:4px}
+.legend{font-size:11px;color:var(--muted);display:flex;gap:14px;margin-bottom:6px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.vbars{display:flex;align-items:flex-end;gap:10px;height:150px;padding-top:10px}
+.vbar{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11px;color:var(--muted)}
+.vbar div{width:100%;max-width:46px;background:var(--accent2);border-radius:4px 4px 0 0;min-height:2px}
+.vbar b{font-weight:600;color:var(--ink);font-size:10px;margin-bottom:2px}
+.alerts{list-style:none;padding:0;margin:0}
+.alerts li{padding:7px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.alerts li:last-child{border-bottom:none}
+.badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#eceeea;color:#444;white-space:nowrap}
+.b-blue{background:#e3edf7;color:#245a8a}.b-orange{background:#fbe9dc;color:#a24a16}.b-green{background:#e2f1e7;color:#22663d}.b-gray{background:#eceeea;color:#666}.b-red{background:#f7e1e1;color:#912d2d}.b-yellow{background:#fbf1d6;color:#87610f}
+.prog{display:flex;align-items:center;gap:6px}
+.prog .track{width:80px;height:8px;background:#eef0ec;border-radius:4px;overflow:hidden}
+.prog .fill{height:100%;background:var(--accent)}
+.muted{color:var(--muted);font-size:12px}
+/* modal */
+.modal{position:fixed;inset:0;background:rgba(20,25,22,.45);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;z-index:50}
+.modal.open{display:flex}
+.dialog{background:#fff;border-radius:10px;width:100%;max-width:860px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.dialog header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.dialog header h4{margin:0;font-size:16px}
+.dialog .body{padding:16px 18px}
+.dialog footer{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--line);align-items:center}
+.dialog footer .err{color:var(--ng);font-size:12px;margin-right:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px 14px}
+.fld{display:flex;flex-direction:column;gap:3px;font-size:12px;color:#444}
+.fld.wide{grid-column:1/-1}
+.items{margin-top:14px;border:1px solid var(--line);border-radius:6px}
+.items td{padding:4px 6px}
+.items input{padding:4px 6px}
+.w80{width:80px}.w60{width:60px}.w120{width:120px}
+.totals{margin-top:12px;display:flex;justify-content:flex-end}
+.totals table{width:auto;min-width:280px;border:1px solid var(--line);border-radius:6px}
+.totals td{padding:5px 12px}
+.preview{margin-top:12px;background:#f6f7f4;border:1px solid var(--line);border-radius:6px;padding:10px 12px;font-size:13px}
+.preview:empty{display:none}
+.toast{position:fixed;bottom:20px;right:20px;background:#1f2a26;color:#fff;padding:10px 16px;border-radius:6px;opacity:0;transition:opacity .25s;z-index:60;pointer-events:none}
+.toast.show{opacity:1}
+/* print */
+#print{display:none}
+@media print{
+  .app,.modal,.toast{display:none!important}
+  #print{display:block}
+  body{background:#fff;font-size:12px}
+}
+.doc{max-width:720px;margin:0 auto;color:#000}
+.doc h1{text-align:center;letter-spacing:.5em;font-size:24px;border-bottom:3px double #000;padding-bottom:6px}
+.doc .row{display:flex;justify-content:space-between;align-items:flex-start;margin:16px 0}
+.doc .to{font-size:16px;border-bottom:1px solid #000;padding-bottom:2px;min-width:300px}
+.doc .from{text-align:right;font-size:12px;line-height:1.7}
+.doc .big{font-size:18px;font-weight:700;border:2px solid #000;padding:8px 12px;display:inline-block;margin:6px 0 14px}
+.doc table{border:1px solid #000}
+.doc th,.doc td{border:1px solid #000;padding:5px 8px;white-space:normal}
+.doc th{background:#eee;color:#000}
+.doc .fine{font-size:11px;margin-top:14px}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav>
+    <h1>解体工事 販売管理<small>Demolition Sales Management (Demo)</small></h1>
+    <div id="nav"></div>
+    <div class="flow">業務の流れ<br>① 見込み客<br>② 見積<br>③ 受注・電子契約<br>④ 出来高請求<br>　＋ 協力業者への出来高支払<br>　＋ マニフェスト管理</div>
+  </nav>
+  <main>
+    <div class="demo">これはポートフォリオ用のデモです。会社名・人名・金額はすべて架空です。入力したデータはお使いのブラウザ内にだけ保存され、外部には送信されません。</div>
+    <div id="view"></div>
+  </main>
+</div>
+
+<div class="modal" id="modal">
+  <div class="dialog">
+    <header><h4 id="modal-title"></h4><button class="small" onclick="closeModal()">閉じる</button></header>
+    <div class="body" id="modal-body"></div>
+    <footer><span class="err" id="modal-err"></span><button onclick="closeModal()">キャンセル</button><button class="primary" id="modal-save">保存</button></footer>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+<div id="print"></div>
+
+<script>
+'use strict';
+/* ============ 基本設定 ============ */
+const KEY = 'kaitai-sms-demo-v1';
+const TAX = 0.10;
+const COMPANY = {name:'株式会社デモ解体工業(架空)', addr:'〒300-0000 茨城県架空市サンプル町1-2-3', tel:'TEL 000-000-0000', permit:'解体工事業 茨城県知事許可(般-00)第00000号(架空)'};
+const TEAMS = ['小規模解体','大規模・公共'];
+const STRUCTS = ['木造','S造','RC造','SRC造','内装のみ','その他'];
+const DEAL_ST = ['見込み','見積提出','受注','失注'];
+const EST_ST = ['作成中','提出済','受注','失注'];
+const EC_ST = ['未送付','送付済','締結済'];
+const SOURCES = ['紹介','Web問合せ','入札','リピート','不動産会社','その他'];
+const OWNERS = ['鈴木','高橋','伊藤','中村'];
+const WASTES = ['がれき類(コンクリートがら)','がれき類(アスファルト)','木くず','金属くず','廃プラスチック類','ガラス・陶磁器くず','石綿含有産業廃棄物','混合廃棄物'];
+const MF_METHOD = ['電子(JWNET)','電子(e-reverse)','紙'];
+const MF_ST = ['未登録','登録済','運搬終了','最終処分完了'];
+const PRESETS = [
+  ['仮設工事(足場・養生シート)','式',1,280000],['建物解体(木造)','㎡',1,8000],['建物解体(S造)','㎡',1,9500],
+  ['建物解体(RC造)','㎡',1,18000],['内装解体','㎡',1,4000],['基礎撤去','式',1,250000],
+  ['アスベスト事前調査','式',1,80000],['産廃処分(木くず)','㎥',1,9000],['産廃処分(がれき類)','t',1,4500],
+  ['産廃処分(コンクリートがら)','t',1,3500],['産廃処分(混合廃棄物)','㎥',1,18000],['整地','㎡',1,500],['重機回送費','回',1,50000]
+];
+const BADGE = {'見込み':'b-blue','見積提出':'b-orange','受注':'b-green','失注':'b-gray','作成中':'b-gray','提出済':'b-orange',
+  '未送付':'b-red','送付済':'b-yellow','締結済':'b-green','未登録':'b-red','登録済':'b-yellow','運搬終了':'b-blue','最終処分完了':'b-green',
+  'A':'b-green','B':'b-yellow','C':'b-gray','完了':'b-green','施工中':'b-orange','着工前':'b-blue'};
+
+/* ============ ユーティリティ ============ */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const yen = n => '¥' + Math.round(n || 0).toLocaleString('ja-JP');
+const man = n => (Math.round((n || 0) / 10000)).toLocaleString('ja-JP') + '万円';
+const uid = () => Math.random().toString(36).slice(2, 10);
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+const addDays = (s, n) => { const d = new Date(s + 'T00:00:00'); d.setDate(d.getDate() + Number(n || 0)); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const jpDate = s => { if (!s) return ''; const [y, m, d] = s.split('-'); return `${y}年${+m}月${+d}日`; };
+const badge = s => `<span class="badge ${BADGE[s] || ''}">${esc(s)}</span>`;
+const nextNo = (prefix, list) => prefix + String(list.reduce((m, x) => Math.max(m, parseInt(String(x.no || '').split('-').pop(), 10) || 0), 0) + 1).padStart(3, '0');
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2200); }
+
+/* ============ サンプルデータ(すべて架空) ============ */
+function sample() {
+  const it = (name, unit, qty, price) => ({name, unit, qty, price});
+  return {
+    deals: [
+      {id:'d1', no:'D-001', customer:'佐藤 一郎 様', title:'佐藤様邸 解体工事', address:'架空市みどり町2-5', structure:'木造', area:120, team:'小規模解体', owner:'鈴木', source:'紹介', status:'受注', prob:'A', created:'2026-08-20', note:'建替えのため。隣家との距離が近い'},
+      {id:'d2', no:'D-002', customer:'株式会社サンプル不動産', title:'旧社員寮 解体工事', address:'架空市港南3-1', structure:'RC造', area:1200, team:'大規模・公共', owner:'高橋', source:'不動産会社', status:'受注', prob:'A', created:'2026-07-10', note:'4階建。跡地は分譲予定'},
+      {id:'d3', no:'D-003', customer:'架空市 契約検査課', title:'旧公民館 解体工事(一般競争入札)', address:'架空市本町1-1', structure:'RC造', area:1800, team:'大規模・公共', owner:'高橋', source:'入札', status:'見積提出', prob:'B', created:'2026-10-01', note:'開札 12月上旬予定'},
+      {id:'d4', no:'D-004', customer:'田中 花子 様', title:'空き家 解体工事', address:'架空市さくら台8-12', structure:'木造', area:80, team:'小規模解体', owner:'伊藤', source:'Web問合せ', status:'見込み', prob:'A', created:'2026-11-12', note:'現地調査 11/28 予定。補助金の利用を検討中'},
+      {id:'d5', no:'D-005', customer:'有限会社サンプル商事', title:'資材倉庫 解体工事', address:'架空市工業団地5', structure:'S造', area:300, team:'小規模解体', owner:'鈴木', source:'リピート', status:'見積提出', prob:'B', created:'2026-10-20', note:''},
+      {id:'d6', no:'D-006', customer:'渡辺 健 様', title:'店舗 内装解体', address:'架空市駅前2-9', structure:'内装のみ', area:60, team:'小規模解体', owner:'中村', source:'Web問合せ', status:'失注', prob:'C', created:'2026-09-05', note:'価格で他社に決定'},
+      {id:'d7', no:'D-007', customer:'山本 様', title:'物置・ブロック塀 撤去', address:'架空市ひばり野4-3', structure:'その他', area:15, team:'小規模解体', owner:'中村', source:'紹介', status:'見込み', prob:'C', created:'2026-11-18', note:''}
+    ],
+    estimates: [
+      {id:'e1', no:'E-001', dealId:'d1', date:'2026-08-28', validDays:30, expenseRate:8, status:'受注', items:[it('仮設工事(足場・養生シート)','式',1,280000),it('建物解体(木造)','㎡',120,8000),it('基礎撤去','式',1,250000),it('産廃処分(木くず)','㎥',30,9000),it('産廃処分(がれき類)','t',40,4500),it('整地','㎡',120,500)]},
+      {id:'e2', no:'E-002', dealId:'d2', date:'2026-07-30', validDays:30, expenseRate:7, status:'受注', items:[it('仮設工事(足場・養生・防音パネル)','式',1,3800000),it('建物解体(RC造)','㎡',1200,18000),it('アスベスト事前調査・分析','式',1,600000),it('産廃処分(コンクリートがら)','t',900,3500),it('産廃処分(混合廃棄物)','㎥',60,18000),it('整地','式',1,770000)]},
+      {id:'e3', no:'E-003', dealId:'d3', date:'2026-11-05', validDays:60, expenseRate:6, status:'提出済', items:[it('仮設工事','式',1,5200000),it('建物解体(RC造)','㎡',1800,19000),it('基礎・杭撤去','式',1,4500000),it('産廃処分(コンクリートがら)','t',1400,3500),it('産廃処分(混合廃棄物)','㎥',80,18000)]},
+      {id:'e4', no:'E-004', dealId:'d5', date:'2026-10-27', validDays:30, expenseRate:8, status:'提出済', items:[it('仮設工事(養生シート)','式',1,350000),it('建物解体(S造)','㎡',300,9500),it('産廃処分(混合廃棄物)','㎥',20,18000),it('整地','㎡',300,500)]},
+      {id:'e5', no:'E-005', dealId:'d6', date:'2026-09-10', validDays:30, expenseRate:8, status:'失注', items:[it('内装解体','㎡',60,4000),it('産廃処分(混合廃棄物)','㎥',12,18000)]}
+    ],
+    projects: [
+      {id:'p1', no:'P-001', dealId:'d1', estimateId:'e1', contract:2160000, start:'2026-10-05', end:'2026-11-10', ec:'締結済', ecSent:'2026-09-08', ecSigned:'2026-09-10'},
+      {id:'p2', no:'P-002', dealId:'d2', estimateId:'e2', contract:33170000, start:'2026-09-01', end:'2027-01-31', ec:'締結済', ecSent:'2026-08-05', ecSigned:'2026-08-08'}
+    ],
+    invoices: [
+      {id:'i1', no:'INV-001', projectId:'p2', date:'2026-09-30', cumRate:15, amount:4975500},
+      {id:'i2', no:'INV-002', projectId:'p1', date:'2026-10-31', cumRate:60, amount:1296000},
+      {id:'i3', no:'INV-003', projectId:'p2', date:'2026-10-31', cumRate:40, amount:8292500},
+      {id:'i4', no:'INV-004', projectId:'p1', date:'2026-11-15', cumRate:100, amount:864000}
+    ],
+    subs: [
+      {id:'s1', name:'有限会社サンプル重機', trade:'重機解体', contact:'000-111-1111'},
+      {id:'s2', name:'株式会社サンプル運輸', trade:'産廃収集運搬', contact:'000-222-2222'},
+      {id:'s3', name:'サンプル環境株式会社', trade:'アスベスト除去', contact:'000-333-3333'},
+      {id:'s4', name:'サンプル足場工業', trade:'仮設足場', contact:'000-444-4444'}
+    ],
+    orders: [
+      {id:'o1', no:'PO-001', projectId:'p1', subId:'s4', amount:250000, note:'足場・養生'},
+      {id:'o2', no:'PO-002', projectId:'p1', subId:'s2', amount:380000, note:'木くず・がれき運搬'},
+      {id:'o3', no:'PO-003', projectId:'p2', subId:'s1', amount:12000000, note:'躯体解体'},
+      {id:'o4', no:'PO-004', projectId:'p2', subId:'s3', amount:550000, note:'事前調査・除去'},
+      {id:'o5', no:'PO-005', projectId:'p2', subId:'s2', amount:3600000, note:'コンがら・混合運搬'}
+    ],
+    payments: [
+      {id:'y1', orderId:'o1', date:'2026-11-25', cumRate:100, amount:250000},
+      {id:'y2', orderId:'o2', date:'2026-11-25', cumRate:100, amount:380000},
+      {id:'y3', orderId:'o3', date:'2026-10-25', cumRate:15, amount:1800000},
+      {id:'y4', orderId:'o3', date:'2026-11-25', cumRate:40, amount:3000000},
+      {id:'y5', orderId:'o4', date:'2026-10-25', cumRate:100, amount:550000},
+      {id:'y6', orderId:'o5', date:'2026-10-25', cumRate:15, amount:540000},
+      {id:'y7', orderId:'o5', date:'2026-11-25', cumRate:40, amount:900000}
+    ],
+    manifests: [
+      {id:'m1', projectId:'p1', date:'2026-10-20', waste:'木くず', qty:30, unit:'㎥', subId:'s2', method:'電子(JWNET)', mfNo:'00000000001', status:'最終処分完了'},
+      {id:'m2', projectId:'p1', date:'2026-10-28', waste:'がれき類(コンクリートがら)', qty:38, unit:'t', subId:'s2', method:'電子(JWNET)', mfNo:'00000000002', status:'最終処分完了'},
+      {id:'m3', projectId:'p2', date:'2026-09-25', waste:'石綿含有産業廃棄物', qty:2, unit:'㎥', subId:'s3', method:'電子(e-reverse)', mfNo:'00000000003', status:'運搬終了'},
+      {id:'m4', projectId:'p2', date:'2026-11-10', waste:'がれき類(コンクリートがら)', qty:350, unit:'t', subId:'s2', method:'電子(JWNET)', mfNo:'00000000004', status:'登録済'},
+      {id:'m5', projectId:'p2', date:'2026-11-20', waste:'混合廃棄物', qty:20, unit:'㎥', subId:'s2', method:'電子(JWNET)', mfNo:'', status:'未登録'}
+    ]
+  };
+}
+
+/* ============ 保存・読込(ブラウザ内) ============ */
+let S;
+function load() {
+  try { const raw = localStorage.getItem(KEY); S = raw ? JSON.parse(raw) : sample(); } catch (e) { S = sample(); }
+  for (const k of Object.keys(sample())) if (!Array.isArray(S[k])) S[k] = [];
+}
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* 保存できない環境でもメモリ上で動作 */ } }
+
+/* ============ 計算ロジック ============ */
+const dealOf = id => S.deals.find(d => d.id === id) || {};
+const projOf = id => S.projects.find(p => p.id === id) || {};
+const subOf = id => S.subs.find(s => s.id === id) || {};
+function estCalc(e) {
+  const sub = e.items.reduce((a, i) => a + (Number(i.qty) || 0) * (Number(i.price) || 0), 0);
+  const exp = Math.round(sub * (Number(e.expenseRate) || 0) / 100);
+  const net = sub + exp, tax = Math.floor(net * TAX);
+  return {sub, exp, net, tax, total: net + tax};
+}
+const projInvoices = p => S.invoices.filter(i => i.projectId === p.id).sort((a, b) => a.cumRate - b.cumRate);
+const projBilled = p => projInvoices(p).reduce((a, i) => a + i.amount, 0);
+const projCum = p => projInvoices(p).reduce((m, i) => Math.max(m, i.cumRate), 0);
+const projOrdered = p => S.orders.filter(o => o.projectId === p.id).reduce((a, o) => a + o.amount, 0);
+const ordPayments = o => S.payments.filter(y => y.orderId === o.id).sort((a, b) => a.cumRate - b.cumRate);
+const ordPaid = o => ordPayments(o).reduce((a, y) => a + y.amount, 0);
+const ordCum = o => ordPayments(o).reduce((m, y) => Math.max(m, y.cumRate), 0);
+const projStage = p => { const c = projCum(p); if (c >= 100) return '完了'; if (p.start && p.start > today()) return '着工前'; return '施工中'; };
+/* 出来高:今回額 = 契約(発注)額 × 累計出来高率 − 既請求(既払)額  ※端数は円未満四捨五入 */
+const progressAmount = (base, cumRate, done) => Math.round(base * cumRate / 100) - done;
+function latestEstimate(dealId) { return S.estimates.filter(e => e.dealId === dealId).sort((a, b) => b.date.localeCompare(a.date))[0]; }
+
+/* ============ モーダル(汎用フォーム) ============ */
+function openModal(title, html, onSave, saveLabel) {
+  $('#modal-title').textContent = title; $('#modal-body').innerHTML = html; $('#modal-err').textContent = '';
+  $('#modal-body').oninput = null; $('#modal-body').onchange = null;
+  const btn = $('#modal-save'); btn.textContent = saveLabel || '保存';
+  btn.onclick = () => { $('#modal-err').textContent = ''; if (onSave() !== false) { closeModal(); save(); render(); } };
+  $('#modal').classList.add('open');
+  const first = $('#modal-body input, #modal-body select'); if (first) first.focus();
+}
+function closeModal() { $('#modal').classList.remove('open'); window._est = null; }
+function err(msg) { $('#modal-err').textContent = msg; return false; }
+function fieldsHtml(fields, v) {
+  return fields.map(f => {
+    const val = v[f.k] ?? f.def ?? '';
+    let input;
+    if (f.t === 'select') input = `<select name="${f.k}">${f.o.map(o => { const [ov, ol] = Array.isArray(o) ? o : [o, o]; return `<option value="${esc(ov)}" ${String(ov) === String(val) ? 'selected' : ''}>${esc(ol)}</option>`; }).join('')}</select>`;
+    else if (f.t === 'textarea') input = `<textarea name="${f.k}" rows="3">${esc(val)}</textarea>`;
+    else input = `<input name="${f.k}" type="${f.t || 'text'}" value="${esc(val)}" ${f.step ? `step="${f.step}"` : ''} ${f.ph ? `placeholder="${esc(f.ph)}"` : ''}>`;
+    return `<label class="fld ${f.wide ? 'wide' : ''}"><span>${esc(f.l)}${f.req ? ' *' : ''}</span>${input}</label>`;
+  }).join('');
+}
+function readFields(fields) {
+  const o = {};
+  for (const f of fields) { const el = $(`#modal-body [name="${f.k}"]`); let v = el.value; if (f.t === 'number') v = v === '' ? '' : Number(v); o[f.k] = v; }
+  return o;
+}
+function formModal(title, fields, v, onSave, preview, saveLabel) {
+  openModal(title, `<div class="grid">${fieldsHtml(fields, v)}</div><div class="preview" id="modal-preview"></div>`, () => {
+    const o = readFields(fields);
+    for (const f of fields) if (f.req && (o[f.k] === '' || o[f.k] == null)) return err(`「${f.l}」を入力してください`);
+    return onSave(o);
+  }, saveLabel);
+  if (preview) { const upd = () => { $('#modal-preview').innerHTML = preview(readFields(fields)); }; $('#modal-body').oninput = upd; $('#modal-body').onchange = upd; upd(); }
+}
+const projOptions = (filter) => S.projects.filter(filter || (() => true)).map(p => [p.id, `${p.no} ${dealOf(p.dealId).title}`]);
+
+/* ============ 画面:ダッシュボード ============ */
+function vDash() {
+  const open = S.deals.filter(d => d.status === '見込み' || d.status === '見積提出');
+  const pipeline = open.reduce((a, d) => { const e = latestEstimate(d.id); return a + (e ? estCalc(e).net : 0); }, 0);
+  const contractTotal = S.projects.reduce((a, p) => a + p.contract, 0);
+  const backlog = S.projects.reduce((a, p) => a + p.contract - projBilled(p), 0);
+  const ym = today().slice(0, 7);
+  const monthBill = S.invoices.filter(i => i.date.startsWith(ym)).reduce((a, i) => a + i.amount, 0);
+  const ordered = S.orders.reduce((a, o) => a + o.amount, 0);
+  const unpaid = S.orders.reduce((a, o) => a + o.amount - ordPaid(o), 0);
+  const won = S.deals.filter(d => d.status === '受注').length, lost = S.deals.filter(d => d.status === '失注').length;
+  const gross = contractTotal - ordered;
+
+  // 部隊別
+  const teamRows = TEAMS.map(t => {
+    const pl = open.filter(d => d.team === t).reduce((a, d) => { const e = latestEstimate(d.id); return a + (e ? estCalc(e).net : 0); }, 0);
+    const wn = S.projects.filter(p => dealOf(p.dealId).team === t).reduce((a, p) => a + p.contract, 0);
+    return {t, pl, wn};
+  });
+  const tmax = Math.max(1, ...teamRows.flatMap(r => [r.pl, r.wn]));
+  const teamHtml = teamRows.map(r => `
+    <div class="bar-row"><span>${esc(r.t)}<span class="muted"> 見込</span></span><div class="bar-track"><div class="bar" style="width:${r.pl / tmax * 100}%;background:#d9895e"></div></div><span class="num">${man(r.pl)}</span></div>
+    <div class="bar-row"><span><span class="muted">　　　　 受注</span></span><div class="bar-track"><div class="bar" style="width:${r.wn / tmax * 100}%;background:var(--accent2)"></div></div><span class="num">${man(r.wn)}</span></div>`).join('');
+
+  // 月別請求(直近6か月)
+  const now = new Date(); const months = [];
+  for (let k = 5; k >= 0; k--) { const d = new Date(now.getFullYear(), now.getMonth() - k, 1); months.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')); }
+  const mv = months.map(m => S.invoices.filter(i => i.date.startsWith(m)).reduce((a, i) => a + i.amount, 0));
+  const mmax = Math.max(1, ...mv);
+  const monthHtml = months.map((m, i) => `<div class="vbar"><b>${mv[i] ? man(mv[i]) : ''}</b><div style="height:${mv[i] / mmax * 110}px"></div>${+m.slice(5)}月</div>`).join('');
+
+  // 要対応
+  const al = [];
+  S.projects.filter(p => p.ec !== '締結済').forEach(p => al.push(`${badge(p.ec)} 電子契約が未締結:${esc(p.no)} ${esc(dealOf(p.dealId).title)}`));
+  S.manifests.filter(m => m.status === '未登録').forEach(m => al.push(`${badge('未登録')} マニフェスト未登録:${esc(projOf(m.projectId).no)} ${esc(m.waste)} ${m.qty}${esc(m.unit)}(${esc(m.date)})`));
+  S.projects.filter(p => projCum(p) < 100 && p.start <= today() && !S.invoices.some(i => i.projectId === p.id && i.date.startsWith(ym))).forEach(p => al.push(`${badge('施工中')} 今月の出来高請求が未作成:${esc(p.no)} ${esc(dealOf(p.dealId).title)}(累計 ${projCum(p)}%)`));
+  S.deals.filter(d => d.status === '見込み' && !S.estimates.some(e => e.dealId === d.id)).forEach(d => al.push(`${badge('見込み')} 見積未作成:${esc(d.no)} ${esc(d.customer)}(確度 ${esc(d.prob)})`));
+  S.estimates.filter(e => e.status === '提出済' && addDays(e.date, e.validDays) < today()).forEach(e => al.push(`${badge('提出済')} 見積の有効期限切れ:${esc(e.no)}`));
+
+  return `<h2>ダッシュボード</h2><p class="lead">${jpDate(today())} 時点の営業・工事・支払の状況</p>
+  <div class="cards">
+    <div class="card"><div class="label">商談中の見込み金額</div><div class="value">${man(pipeline)}</div><div class="note">${open.length}件(最新見積の税抜額)</div></div>
+    <div class="card"><div class="label">受注累計(税抜)</div><div class="value">${man(contractTotal)}</div><div class="note">受注率 ${won + lost ? Math.round(won / (won + lost) * 100) : 0}%(${won}勝${lost}敗)</div></div>
+    <div class="card"><div class="label">受注残(未請求)</div><div class="value">${man(backlog)}</div><div class="note">契約額 − 請求済額</div></div>
+    <div class="card"><div class="label">今月の出来高請求</div><div class="value">${man(monthBill)}</div><div class="note">税抜</div></div>
+    <div class="card"><div class="label">協力業者 未払残</div><div class="value">${man(unpaid)}</div><div class="note">発注額 − 支払済額</div></div>
+    <div class="card"><div class="label">粗利見込み</div><div class="value">${man(gross)}</div><div class="note">粗利率 ${contractTotal ? (gross / contractTotal * 100).toFixed(1) : '0.0'}%</div></div>
+  </div>
+  <div class="two">
+    <div class="panel"><h3 style="margin-top:0">部隊別 見込み/受注</h3><div class="legend"><span><i style="background:#d9895e"></i>見込み(商談中)</span><span><i style="background:var(--accent2)"></i>受注</span></div>${teamHtml}</div>
+    <div class="panel"><h3 style="margin-top:0">月別 出来高請求額(税抜)</h3><div class="vbars">${monthHtml}</div></div>
+  </div>
+  <h3>要対応(${al.length}件)</h3>
+  <div class="panel">${al.length ? `<ul class="alerts">${al.map(a => `<li>${a}</li>`).join('')}</ul>` : '<div class="empty">対応が必要な項目はありません</div>'}</div>`;
+}
+
+/* ============ 画面:見込み客・案件 ============ */
+let dealFilter = {team: '', status: ''};
+const DEAL_FIELDS = [
+  {k:'customer', l:'顧客名', req:1, ph:'例:山田 太郎 様 / 株式会社〇〇'},
+  {k:'title', l:'工事名', req:1, ph:'例:〇〇様邸 解体工事'},
+  {k:'address', l:'現場所在地', wide:1},
+  {k:'structure', l:'構造', t:'select', o:STRUCTS},
+  {k:'area', l:'延床面積(㎡)', t:'number'},
+  {k:'team', l:'担当部隊', t:'select', o:TEAMS},
+  {k:'owner', l:'営業担当', t:'select', o:OWNERS},
+  {k:'source', l:'流入経路', t:'select', o:SOURCES},
+  {k:'prob', l:'受注確度', t:'select', o:[['A','A(高)'],['B','B(中)'],['C','C(低)']]},
+  {k:'status', l:'ステータス', t:'select', o:DEAL_ST},
+  {k:'note', l:'メモ', t:'textarea', wide:1}
+];
+function vDeals() {
+  const list = S.deals.filter(d => (!dealFilter.team || d.team === dealFilter.team) && (!dealFilter.status || d.status === dealFilter.status)).sort((a, b) => b.no.localeCompare(a.no));
+  const sel = (k, opts, label) => `<select onchange="dealFilter.${k}=this.value;render()"><option value="">${label}:すべて</option>${opts.map(o => `<option ${dealFilter[k] === o ? 'selected' : ''}>${o}</option>`).join('')}</select>`;
+  return `<h2>見込み客・案件</h2><p class="lead">問合せ・紹介・入札情報の段階から案件を登録し、見積・受注まで追いかけます。</p>
+  <div class="toolbar"><button class="primary" onclick="act.dealNew()">+ 新規案件</button>${sel('team', TEAMS, '部隊')}${sel('status', DEAL_ST, '状態')}<span class="muted">${list.length}件</span></div>
+  <div class="tablewrap"><table><thead><tr><th>案件No</th><th>顧客 / 工事名</th><th>構造・面積</th><th>部隊</th><th>担当</th><th>経路</th><th>確度</th><th class="num">最新見積(税抜)</th><th>状態</th><th>操作</th></tr></thead><tbody>
+  ${list.map(d => { const e = latestEstimate(d.id); return `<tr><td>${esc(d.no)}<span class="sub">${esc(d.created || '')}</span></td>
+    <td class="wrap"><b>${esc(d.customer)}</b><span class="sub">${esc(d.title)}${d.address ? '/' + esc(d.address) : ''}</span>${d.note ? `<span class="sub">📝 ${esc(d.note)}</span>` : ''}</td>
+    <td>${esc(d.structure)}<span class="sub">${d.area ? Number(d.area).toLocaleString() + '㎡' : ''}</span></td><td>${esc(d.team)}</td><td>${esc(d.owner)}</td><td>${esc(d.source)}</td><td>${badge(d.prob)}</td>
+    <td class="num">${e ? yen(estCalc(e).net) + `<span class="sub">${esc(e.no)}</span>` : '<span class="muted">—</span>'}</td><td>${badge(d.status)}</td>
+    <td><div class="ops"><button class="small" onclick="act.dealEdit('${d.id}')">編集</button>${d.status !== '受注' && d.status !== '失注' ? `<button class="small" onclick="act.estNew('${d.id}')">見積作成</button>` : ''}<button class="small danger" onclick="act.dealDel('${d.id}')">削除</button></div></td></tr>`; }).join('') || `<tr><td colspan="10" class="empty">該当する案件はありません</td></tr>`}
+  </tbody></table></div>`;
+}
+
+/* ============ 画面:見積 ============ */
+function vEstimates() {
+  const list = [...S.estimates].sort((a, b) => b.no.localeCompare(a.no));
+  return `<h2>見積</h2><p class="lead">明細(解体・産廃処分・整地など)と諸経費率から見積を作成し、見積書を印刷/PDF保存できます。提出済の見積から受注登録します。</p>
+  <div class="toolbar"><button class="primary" onclick="act.estNew()">+ 新規見積</button></div>
+  <div class="tablewrap"><table><thead><tr><th>見積No</th><th>見積日</th><th>案件</th><th class="num">税抜</th><th class="num">税込</th><th>有効期限</th><th>状態</th><th>操作</th></tr></thead><tbody>
+  ${list.map(e => { const d = dealOf(e.dealId), c = estCalc(e), exp = addDays(e.date, e.validDays), hasProj = S.projects.some(p => p.estimateId === e.id);
+    return `<tr><td>${esc(e.no)}</td><td>${esc(e.date)}</td><td class="wrap"><b>${esc(d.customer)}</b><span class="sub">${esc(d.no)} ${esc(d.title)}</span></td>
+    <td class="num">${yen(c.net)}</td><td class="num">${yen(c.total)}</td><td>${esc(exp)}${e.status === '提出済' && exp < today() ? ' <span class="badge b-red">期限切れ</span>' : ''}</td><td>${badge(e.status)}</td>
+    <td><div class="ops"><button class="small" onclick="act.estEdit('${e.id}')">編集</button><button class="small" onclick="act.estPrint('${e.id}')">見積書</button>${!hasProj && e.status !== '失注' ? `<button class="small primary" onclick="act.estToProject('${e.id}')">受注登録</button>` : ''}${!hasProj && e.status !== '失注' && e.status !== '受注' ? `<button class="small" onclick="act.estLost('${e.id}')">失注</button>` : ''}${!hasProj ? `<button class="small danger" onclick="act.estDel('${e.id}')">削除</button>` : ''}</div></td></tr>`; }).join('') || `<tr><td colspan="8" class="empty">見積はまだありません</td></tr>`}
+  </tbody></table></div>`;
+}
+function estBody() {
+  const e = window._est;
+  const deals = S.deals.filter(d => d.status !== '失注' || d.id === e.dealId);
+  return `<div class="grid">
+    <label class="fld wide"><span>案件 *</span><select id="e-deal">${deals.map(d => `<option value="${d.id}" ${d.id === e.dealId ? 'selected' : ''}>${esc(d.no + ' ' + d.customer + ' / ' + d.title)}</option>`).join('')}</select></label>
+    <label class="fld"><span>見積日</span><input type="date" id="e-date" value="${esc(e.date)}"></label>
+    <label class="fld"><span>有効期限(日数)</span><input type="number" id="e-valid" value="${esc(e.validDays)}"></label>
+    <label class="fld"><span>諸経費率(%)</span><input type="number" step="0.1" id="e-exp" value="${esc(e.expenseRate)}"></label>
+    <label class="fld"><span>状態</span><select id="e-status">${EST_ST.filter(s => s !== '受注' || e.status === '受注').map(s => `<option ${s === e.status ? 'selected' : ''}>${s}</option>`).join('')}</select></label>
+  </div>
+  <div class="tablewrap items"><table><thead><tr><th>項目</th><th>数量</th><th>単位</th><th>単価</th><th class="num">金額</th><th></th></tr></thead><tbody>
+  ${e.items.map((it, i) => `<tr><td><input data-i="${i}" data-k="name" value="${esc(it.name)}"></td><td><input class="w80" data-i="${i}" data-k="qty" type="number" step="0.01" value="${esc(it.qty)}"></td><td><input class="w60" data-i="${i}" data-k="unit" value="${esc(it.unit)}"></td><td><input class="w120" data-i="${i}" data-k="price" type="number" value="${esc(it.price)}"></td><td class="num" id="amt-${i}"></td><td><button class="small danger" onclick="act.estDelRow(${i})">×</button></td></tr>`).join('')}
+  </tbody></table></div>
+  <div class="toolbar" style="margin-top:8px"><button class="small" onclick="act.estAddRow()">+ 空行を追加</button>
+    <select onchange="if(this.value!==''){act.estAddPreset(+this.value)}"><option value="">よく使う項目から追加…</option>${PRESETS.map((p, i) => `<option value="${i}">${esc(p[0])}(${yen(p[3])}/${esc(p[1])})</option>`).join('')}</select></div>
+  <div class="totals" id="e-totals"></div>`;
+}
+function estSync() {
+  const e = window._est; if (!e) return;
+  e.dealId = $('#e-deal').value; e.date = $('#e-date').value; e.validDays = Number($('#e-valid').value) || 0; e.expenseRate = Number($('#e-exp').value) || 0; e.status = $('#e-status').value;
+  $$('#modal-body [data-i]').forEach(el => { const it = e.items[+el.dataset.i]; const k = el.dataset.k; it[k] = (k === 'qty' || k === 'price') ? (el.value === '' ? 0 : Number(el.value)) : el.value; });
+  e.items.forEach((it, i) => { const c = $('#amt-' + i); if (c) c.textContent = yen(it.qty * it.price); });
+  const c = estCalc(e);
+  $('#e-totals').innerHTML = `<table><tr><td>小計</td><td class="num">${yen(c.sub)}</td></tr><tr><td>諸経費(${e.expenseRate}%)</td><td class="num">${yen(c.exp)}</td></tr><tr><td><b>税抜合計</b></td><td class="num"><b>${yen(c.net)}</b></td></tr><tr><td>消費税(10%)</td><td class="num">${yen(c.tax)}</td></tr><tr><td><b>税込合計</b></td><td class="num"><b>${yen(c.total)}</b></td></tr></table>`;
+}
+function estEditor(src, presetDeal) {
+  const isNew = !src;
+  window._est = src ? JSON.parse(JSON.stringify(src)) : {id: uid(), no: nextNo('E-', S.estimates), dealId: presetDeal || (S.deals.find(d => d.status === '見込み' || d.status === '見積提出') || S.deals[0] || {}).id, date: today(), validDays: 30, expenseRate: 8, status: '作成中', items: [{name: '', qty: 1, unit: '式', price: 0}]};
+  if (!window._est.dealId) { toast('先に案件を登録してください'); window._est = null; return; }
+  const reopen = () => {
+    openModal((isNew ? '見積作成 ' : '見積編集 ') + window._est.no, estBody(), () => {
+      estSync(); const e = window._est;
+      e.items = e.items.filter(it => it.name.trim() !== '' || it.price);
+      if (!e.items.length) return err('明細を1行以上入力してください');
+      if (isNew) S.estimates.push(e); else S.estimates[S.estimates.findIndex(x => x.id === e.id)] = e;
+      const d = dealOf(e.dealId); if (d.status === '見込み' && (e.status === '提出済')) d.status = '見積提出';
+      toast('見積を保存しました');
+    });
+    $('#modal-body').oninput = estSync; $('#modal-body').onchange = estSync; estSync();
+  };
+  window._estReopen = reopen; reopen();
+}
+
+/* ============ 画面:工事・電子契約 ============ */
+function vProjects() {
+  const list = [...S.projects].sort((a, b) => b.no.localeCompare(a.no));
+  return `<h2>受注工事・電子契約</h2><p class="lead">受注した工事の契約金額・工期・電子契約の状況と、出来高・請求・協力業者発注から見た粗利を一覧します。</p>
+  <div class="tablewrap"><table><thead><tr><th>工事No</th><th>工事名 / 顧客</th><th>部隊</th><th>工期</th><th class="num">契約額(税抜)</th><th>出来高</th><th class="num">請求済</th><th class="num">協力業者発注</th><th class="num">粗利見込</th><th>電子契約</th><th>操作</th></tr></thead><tbody>
+  ${list.map(p => { const d = dealOf(p.dealId), cum = projCum(p), ord = projOrdered(p), g = p.contract - ord;
+    return `<tr><td>${esc(p.no)}<span class="sub">${badge(projStage(p))}</span></td><td class="wrap"><b>${esc(d.title)}</b><span class="sub">${esc(d.customer)}</span></td><td>${esc(d.team)}</td>
+    <td>${esc(p.start)}<span class="sub">〜 ${esc(p.end)}</span></td><td class="num">${yen(p.contract)}</td>
+    <td><div class="prog"><div class="track"><div class="fill" style="width:${cum}%"></div></div>${cum}%</div></td><td class="num">${yen(projBilled(p))}</td><td class="num">${yen(ord)}</td>
+    <td class="num">${yen(g)}<span class="sub">${p.contract ? (g / p.contract * 100).toFixed(1) : 0}%</span></td>
+    <td>${badge(p.ec)}<span class="sub">${p.ecSigned ? '締結 ' + esc(p.ecSigned) : p.ecSent ? '送付 ' + esc(p.ecSent) : ''}</span></td>
+    <td><div class="ops">${p.ec === '未送付' ? `<button class="small" onclick="act.ecSend('${p.id}')">契約書を送付</button>` : ''}${p.ec === '送付済' ? `<button class="small" onclick="act.ecSign('${p.id}')">締結を反映</button>` : ''}<button class="small" onclick="act.projEdit('${p.id}')">編集</button>${!S.invoices.some(i => i.projectId === p.id) && !S.orders.some(o => o.projectId === p.id) && !S.manifests.some(m => m.projectId === p.id) ? `<button class="small danger" onclick="act.projDel('${p.id}')">削除</button>` : ''}</div></td></tr>`; }).join('') || `<tr><td colspan="11" class="empty">受注工事はまだありません(見積画面の「受注登録」から作成)</td></tr>`}
+  </tbody></table></div>
+  <p class="muted">※電子契約は画面上の状態管理のデモです。実運用では電子契約サービスのAPIと連携し、送付・締結状況を自動で取り込む想定です。</p>`;
+}
+const PROJ_FIELDS = [
+  {k:'contract', l:'契約金額(税抜・円)', t:'number', req:1},
+  {k:'start', l:'着工日', t:'date', req:1},
+  {k:'end', l:'完工予定日', t:'date', req:1},
+  {k:'ec', l:'電子契約', t:'select', o:EC_ST}
+];
+
+/* ============ 画面:出来高請求 ============ */
+function vBilling() {
+  const ps = [...S.projects].sort((a, b) => b.no.localeCompare(a.no));
+  const inv = [...S.invoices].sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no));
+  return `<h2>出来高請求</h2><p class="lead">工事の進み具合(累計出来高率)を入力すると、「契約額 × 累計出来高率 − 前回までの請求額」で今回請求額を自動計算します。</p>
+  <div class="tablewrap"><table><thead><tr><th>工事</th><th class="num">契約額</th><th>累計出来高</th><th class="num">請求済</th><th class="num">未請求残</th><th>操作</th></tr></thead><tbody>
+  ${ps.map(p => { const cum = projCum(p), b = projBilled(p); return `<tr><td class="wrap"><b>${esc(p.no)} ${esc(dealOf(p.dealId).title)}</b><span class="sub">${esc(dealOf(p.dealId).customer)}</span></td><td class="num">${yen(p.contract)}</td>
+    <td><div class="prog"><div class="track"><div class="fill" style="width:${cum}%"></div></div>${cum}%</div></td><td class="num">${yen(b)}</td><td class="num">${yen(p.contract - b)}</td>
+    <td>${cum < 100 ? `<button class="small primary" onclick="act.billNew('${p.id}')">出来高請求を作成</button>` : '<span class="badge b-green">請求完了</span>'}</td></tr>`; }).join('') || `<tr><td colspan="6" class="empty">受注工事がありません</td></tr>`}
+  </tbody></table></div>
+  <h3>請求履歴</h3>
+  <div class="tablewrap"><table><thead><tr><th>請求No</th><th>請求日</th><th>工事</th><th class="num">累計出来高</th><th class="num">今回請求(税抜)</th><th class="num">消費税</th><th class="num">税込</th><th>操作</th></tr></thead><tbody>
+  ${inv.map(i => { const p = projOf(i.projectId), last = projInvoices(p).slice(-1)[0], tax = Math.floor(i.amount * TAX); return `<tr><td>${esc(i.no)}</td><td>${esc(i.date)}</td><td class="wrap">${esc(p.no)} ${esc(dealOf(p.dealId).title)}</td><td class="num">${i.cumRate}%</td><td class="num">${yen(i.amount)}</td><td class="num">${yen(tax)}</td><td class="num">${yen(i.amount + tax)}</td>
+    <td><div class="ops"><button class="small" onclick="act.invPrint('${i.id}')">請求書</button>${last && last.id === i.id ? `<button class="small danger" onclick="act.invDel('${i.id}')">取消</button>` : ''}</div></td></tr>`; }).join('') || `<tr><td colspan="8" class="empty">請求はまだありません</td></tr>`}
+  </tbody></table></div><p class="muted">※整合性を保つため、取消は各工事の最新の請求のみ可能です。</p>`;
+}
+
+/* ============ 画面:協力業者・支払 ============ */
+function vSubs() {
+  const ords = [...S.orders].sort((a, b) => b.no.localeCompare(a.no));
+  const pays = [...S.payments].sort((a, b) => b.date.localeCompare(a.date));
+  return `<h2>協力業者・出来高支払</h2><p class="lead">工事ごとに協力業者への発注を登録し、出来高に応じた支払額を自動計算します(発注額 × 累計出来高率 − 既払額)。</p>
+  <div class="toolbar"><button class="primary" onclick="act.orderNew()">+ 発注を登録</button><button onclick="act.subNew()">+ 協力業者を登録</button><button onclick="act.payCsv()">支払一覧CSV</button></div>
+  <h3 style="margin-top:6px">発注一覧</h3>
+  <div class="tablewrap"><table><thead><tr><th>発注No</th><th>工事</th><th>協力業者</th><th>内容</th><th class="num">発注額</th><th>支払出来高</th><th class="num">支払済</th><th class="num">未払残</th><th>操作</th></tr></thead><tbody>
+  ${ords.map(o => { const p = projOf(o.projectId), s = subOf(o.subId), cum = ordCum(o), paid = ordPaid(o); return `<tr><td>${esc(o.no)}</td><td class="wrap">${esc(p.no)} ${esc(dealOf(p.dealId).title)}</td><td>${esc(s.name)}<span class="sub">${esc(s.trade)}</span></td><td>${esc(o.note)}</td>
+    <td class="num">${yen(o.amount)}</td><td><div class="prog"><div class="track"><div class="fill" style="width:${cum}%;background:var(--accent2)"></div></div>${cum}%</div></td><td class="num">${yen(paid)}</td><td class="num">${yen(o.amount - paid)}</td>
+    <td><div class="ops">${cum < 100 ? `<button class="small primary" onclick="act.payNew('${o.id}')">出来高支払</button>` : '<span class="badge b-green">支払完了</span>'}${!S.payments.some(y => y.orderId === o.id) ? `<button class="small danger" onclick="act.orderDel('${o.id}')">削除</button>` : ''}</div></td></tr>`; }).join('') || `<tr><td colspan="9" class="empty">発注はまだありません</td></tr>`}
+  </tbody></table></div>
+  <div class="two" style="margin-top:4px">
+  <div><h3>支払履歴</h3><div class="tablewrap"><table><thead><tr><th>支払日</th><th>協力業者</th><th>発注No</th><th class="num">累計</th><th class="num">今回支払(税抜)</th><th></th></tr></thead><tbody>
+  ${pays.map(y => { const o = S.orders.find(x => x.id === y.orderId) || {}, last = ordPayments(o).slice(-1)[0]; return `<tr><td>${esc(y.date)}</td><td>${esc(subOf(o.subId).name)}</td><td>${esc(o.no)}</td><td class="num">${y.cumRate}%</td><td class="num">${yen(y.amount)}</td><td>${last && last.id === y.id ? `<button class="small danger" onclick="act.payDel('${y.id}')">取消</button>` : ''}</td></tr>`; }).join('') || `<tr><td colspan="6" class="empty">支払はまだありません</td></tr>`}
+  </tbody></table></div></div>
+  <div><h3>協力業者マスタ</h3><div class="tablewrap"><table><thead><tr><th>業者名</th><th>業種</th><th>連絡先</th><th class="num">発注累計</th><th></th></tr></thead><tbody>
+  ${S.subs.map(s => `<tr><td>${esc(s.name)}</td><td>${esc(s.trade)}</td><td>${esc(s.contact)}</td><td class="num">${yen(S.orders.filter(o => o.subId === s.id).reduce((a, o) => a + o.amount, 0))}</td><td><div class="ops"><button class="small" onclick="act.subEdit('${s.id}')">編集</button>${!S.orders.some(o => o.subId === s.id) && !S.manifests.some(m => m.subId === s.id) ? `<button class="small danger" onclick="act.subDel('${s.id}')">削除</button>` : ''}</div></td></tr>`).join('') || `<tr><td colspan="5" class="empty">協力業者が未登録です</td></tr>`}
+  </tbody></table></div></div></div>`;
+}
+const SUB_FIELDS = [{k:'name', l:'業者名', req:1}, {k:'trade', l:'業種', ph:'例:重機解体 / 産廃収集運搬'}, {k:'contact', l:'連絡先'}];
+
+/* ============ 画面:マニフェスト ============ */
+let mfFilter = '';
+function vManifests() {
+  const list = S.manifests.filter(m => !mfFilter || m.status === mfFilter).sort((a, b) => b.date.localeCompare(a.date));
+  const unreg = S.manifests.filter(m => m.status === '未登録').length;
+  return `<h2>マニフェスト(産業廃棄物管理票)</h2><p class="lead">工事ごとの廃棄物の搬出を記録し、電子マニフェストの登録漏れを防ぎます。未登録分はJWNETへの入力作業用にCSVで書き出せます。</p>
+  <div class="toolbar"><button class="primary" onclick="act.mfNew()">+ 搬出を記録</button><select onchange="mfFilter=this.value;render()"><option value="">状態:すべて</option>${MF_ST.map(s => `<option ${mfFilter === s ? 'selected' : ''}>${s}</option>`).join('')}</select>
+  <button onclick="act.mfCsv()" ${unreg ? '' : 'disabled'}>未登録分をCSV出力(${unreg}件)</button></div>
+  <div class="tablewrap"><table><thead><tr><th>交付・搬出日</th><th>工事</th><th>廃棄物の種類</th><th class="num">数量</th><th>収集運搬業者</th><th>方式</th><th>マニフェスト番号</th><th>状態</th><th>操作</th></tr></thead><tbody>
+  ${list.map(m => { const p = projOf(m.projectId); return `<tr><td>${esc(m.date)}</td><td class="wrap">${esc(p.no)} ${esc(dealOf(p.dealId).title)}</td><td>${esc(m.waste)}</td><td class="num">${Number(m.qty).toLocaleString()} ${esc(m.unit)}</td><td>${esc(subOf(m.subId).name || '')}</td><td>${esc(m.method)}</td><td>${esc(m.mfNo) || '<span class="muted">—</span>'}</td><td>${badge(m.status)}</td>
+    <td><div class="ops"><button class="small" onclick="act.mfEdit('${m.id}')">編集</button><button class="small danger" onclick="act.mfDel('${m.id}')">削除</button></div></td></tr>`; }).join('') || `<tr><td colspan="9" class="empty">記録がありません</td></tr>`}
+  </tbody></table></div>
+  <p class="muted">※CSVは社内の入力作業用の簡易形式です(JWNETの公式取込フォーマットではありません)。実運用ではJWNETのEDI連携やe-reverseとのデータ連携を想定しています。</p>`;
+}
+const mfFields = () => [
+  {k:'projectId', l:'工事', t:'select', o:projOptions(), wide:1},
+  {k:'date', l:'交付・搬出日', t:'date', req:1, def:today()},
+  {k:'waste', l:'廃棄物の種類', t:'select', o:WASTES},
+  {k:'qty', l:'数量', t:'number', req:1, step:'0.01'},
+  {k:'unit', l:'単位', t:'select', o:['t', '㎥', 'kg']},
+  {k:'subId', l:'収集運搬業者', t:'select', o:S.subs.map(s => [s.id, s.name])},
+  {k:'method', l:'方式', t:'select', o:MF_METHOD},
+  {k:'mfNo', l:'マニフェスト番号', ph:'登録後に入力'},
+  {k:'status', l:'状態', t:'select', o:MF_ST}
+];
+
+/* ============ 画面:データ管理 ============ */
+function vData() {
+  const counts = [['案件', S.deals], ['見積', S.estimates], ['受注工事', S.projects], ['請求', S.invoices], ['協力業者', S.subs], ['発注', S.orders], ['支払', S.payments], ['マニフェスト', S.manifests]];
+  return `<h2>データ管理・このシステムについて</h2>
+  <div class="two"><div class="panel"><h3 style="margin-top:0">データ</h3>
+  <p class="muted">データはこのブラウザ内(localStorage)に保存されます。別のPCへ移す場合やバックアップにはJSON書き出しを使います。</p>
+  <div class="toolbar"><button onclick="act.exportJson()">JSONで書き出し</button><label><button onclick="$('#imp').click()">JSONを読み込み</button></label><input type="file" id="imp" accept="application/json" style="display:none" onchange="act.importJson(this)"><button class="danger" onclick="act.reset()">サンプルデータに戻す</button></div>
+  <div class="tablewrap"><table><tbody>${counts.map(([l, a]) => `<tr><td>${l}</td><td class="num">${a.length}件</td></tr>`).join('')}</tbody></table></div></div>
+  <div class="panel"><h3 style="margin-top:0">このシステムについて</h3>
+  <p>総合解体工事業の実務(小規模解体と大規模・公共工事の2部隊、出来高による請求・支払、産廃マニフェスト)に合わせて設計した販売管理システムのデモです。</p>
+  <ul class="muted" style="padding-left:18px"><li>見込み客の段階から案件を管理し、見積 → 受注 → 電子契約 → 出来高請求までを1本の流れでつなぎます</li><li>協力業者への支払も出来高ベースで自動計算し、工事ごとの粗利を見える化します</li><li>マニフェストの未登録を「要対応」に出し、登録漏れを防ぎます</li><li>HTML/CSS/JavaScriptのみの1ファイル構成。サーバー不要で、GitHub Pagesで公開しています</li></ul></div></div>`;
+}
+
+/* ============ 印刷(見積書・請求書) ============ */
+function printDoc(html) { $('#print').innerHTML = `<div class="doc">${html}</div>`; setTimeout(() => window.print(), 50); }
+const fromBlock = () => `<div class="from"><b>${esc(COMPANY.name)}</b><br>${esc(COMPANY.addr)}<br>${esc(COMPANY.tel)}<br>${esc(COMPANY.permit)}</div>`;
+const honorific = n => /様|御中$/.test(n) ? n : n + ' 御中';
+
+/* ============ 操作 ============ */
+const act = {
+  dealNew() { formModal('新規案件', DEAL_FIELDS, {status: '見込み', prob: 'B'}, o => { S.deals.push({id: uid(), no: nextNo('D-', S.deals), created: today(), ...o}); toast('案件を登録しました'); }); },
+  dealEdit(id) { const d = dealOf(id); formModal('案件編集 ' + d.no, DEAL_FIELDS, d, o => { Object.assign(d, o); }); },
+  dealDel(id) { if (S.estimates.some(e => e.dealId === id)) return toast('見積がある案件は削除できません'); if (confirm('この案件を削除しますか?')) { S.deals = S.deals.filter(d => d.id !== id); save(); render(); } },
+  estNew(dealId) { estEditor(null, dealId); },
+  estEdit(id) { estEditor(S.estimates.find(e => e.id === id)); },
+  estAddRow() { estSync(); window._est.items.push({name: '', qty: 1, unit: '式', price: 0}); window._estReopen(); },
+  estAddPreset(i) { estSync(); const p = PRESETS[i]; const its = window._est.items; if (its.length === 1 && !its[0].name && !its[0].price) its.pop(); its.push({name: p[0], unit: p[1], qty: p[2], price: p[3]}); window._estReopen(); },
+  estDelRow(i) { estSync(); window._est.items.splice(i, 1); if (!window._est.items.length) window._est.items.push({name: '', qty: 1, unit: '式', price: 0}); window._estReopen(); },
+  estDel(id) { if (confirm('この見積を削除しますか?')) { S.estimates = S.estimates.filter(e => e.id !== id); save(); render(); } },
+  estLost(id) { const e = S.estimates.find(x => x.id === id); if (!confirm(e.no + ' を失注にしますか?(案件も失注になります)')) return; e.status = '失注'; dealOf(e.dealId).status = '失注'; save(); render(); },
+  estPrint(id) {
+    const e = S.estimates.find(x => x.id === id), d = dealOf(e.dealId), c = estCalc(e);
+    printDoc(`<h1>御見積書</h1><div class="row"><div><div class="to">${esc(honorific(d.customer))}</div><p>工事名:${esc(d.title)}<br>工事場所:${esc(d.address)}<br>有効期限:${jpDate(addDays(e.date, e.validDays))}</p></div><div style="text-align:right">No. ${esc(e.no)}<br>${jpDate(e.date)}</div></div>
+    <div class="row"><div>下記のとおり御見積申し上げます。<br><span class="big">御見積金額 ${yen(c.total)}(税込)</span></div>${fromBlock()}</div>
+    <table><thead><tr><th>項目</th><th class="num">数量</th><th>単位</th><th class="num">単価</th><th class="num">金額</th></tr></thead><tbody>
+    ${e.items.map(it => `<tr><td>${esc(it.name)}</td><td class="num">${Number(it.qty).toLocaleString()}</td><td>${esc(it.unit)}</td><td class="num">${yen(it.price)}</td><td class="num">${yen(it.qty * it.price)}</td></tr>`).join('')}
+    <tr><td colspan="4">小計</td><td class="num">${yen(c.sub)}</td></tr><tr><td colspan="4">諸経費(${e.expenseRate}%)</td><td class="num">${yen(c.exp)}</td></tr><tr><td colspan="4">税抜合計</td><td class="num">${yen(c.net)}</td></tr><tr><td colspan="4">消費税(10%)</td><td class="num">${yen(c.tax)}</td></tr><tr><th colspan="4" style="text-align:left">合計</th><th class="num">${yen(c.total)}</th></tr></tbody></table>
+    <p class="fine">※産業廃棄物の数量は概算です。実数量により精算させていただく場合があります。<br>※本書はデモ用の架空データです。</p>`);
+  },
+  estToProject(id) {
+    const e = S.estimates.find(x => x.id === id), c = estCalc(e);
+    formModal('受注登録(' + e.no + ')', PROJ_FIELDS, {contract: c.net, start: addDays(today(), 14), end: addDays(today(), 60), ec: '未送付'}, o => {
+      if (o.end < o.start) return err('完工予定日は着工日以降にしてください');
+      S.projects.push({id: uid(), no: nextNo('P-', S.projects), dealId: e.dealId, estimateId: e.id, contract: Number(o.contract), start: o.start, end: o.end, ec: o.ec, ecSent: o.ec !== '未送付' ? today() : '', ecSigned: o.ec === '締結済' ? today() : ''});
+      e.status = '受注'; dealOf(e.dealId).status = '受注'; toast('受注工事を登録しました'); view = 'projects';
+    }, null, '受注登録');
+  },
+  projEdit(id) { const p = projOf(id); formModal('工事編集 ' + p.no, PROJ_FIELDS, p, o => { if (o.end < o.start) return err('完工予定日は着工日以降にしてください'); if (Number(o.contract) < projBilled(p)) return err('契約金額が請求済額を下回っています'); Object.assign(p, o, {contract: Number(o.contract)}); }); },
+  projDel(id) { if (!confirm('この受注工事を削除しますか?(見積は「提出済」に戻ります)')) return; const p = projOf(id); const e = S.estimates.find(x => x.id === p.estimateId); if (e) e.status = '提出済'; const d = dealOf(p.dealId); if (d.status === '受注') d.status = '見積提出'; S.projects = S.projects.filter(x => x.id !== id); save(); render(); },
+  ecSend(id) { const p = projOf(id); p.ec = '送付済'; p.ecSent = today(); save(); render(); toast('電子契約サービスへ契約書を送付しました(デモ)'); },
+  ecSign(id) { const p = projOf(id); p.ec = '締結済'; p.ecSigned = today(); save(); render(); toast('締結済に更新しました(デモ)'); },
+  billNew(pid) {
+    const p = projOf(pid), cum = projCum(p), billed = projBilled(p);
+    formModal('出来高請求の作成:' + p.no, [{k:'date', l:'請求日', t:'date', req:1, def:today()}, {k:'cumRate', l:`累計出来高率(%)  前回 ${cum}%`, t:'number', req:1, step:'0.1'}], {}, o => {
+      if (!(o.cumRate > cum && o.cumRate <= 100)) return err(`累計出来高率は ${cum}% より大きく 100% 以下で入力してください`);
+      S.invoices.push({id: uid(), no: nextNo('INV-', S.invoices), projectId: pid, date: o.date, cumRate: o.cumRate, amount: progressAmount(p.contract, o.cumRate, billed)});
+      toast('出来高請求を作成しました');
+    }, o => { if (o.cumRate === '' || !(o.cumRate > cum && o.cumRate <= 100)) return `契約額 ${yen(p.contract)} / 請求済 ${yen(billed)}(累計 ${cum}%)`; const a = progressAmount(p.contract, o.cumRate, billed), t = Math.floor(a * TAX); return `今回請求額 = ${yen(p.contract)} × ${o.cumRate}% − ${yen(billed)} = <b>${yen(a)}</b>(税抜)<br>消費税 ${yen(t)} / 税込 <b>${yen(a + t)}</b>`; }, '請求を作成');
+  },
+  invDel(id) { if (confirm('この請求を取り消しますか?')) { S.invoices = S.invoices.filter(i => i.id !== id); save(); render(); } },
+  invPrint(id) {
+    const i = S.invoices.find(x => x.id === id), p = projOf(i.projectId), d = dealOf(p.dealId), tax = Math.floor(i.amount * TAX);
+    const prev = projInvoices(p).filter(x => x.cumRate < i.cumRate), prevAmt = prev.reduce((a, x) => a + x.amount, 0), prevRate = prev.reduce((m, x) => Math.max(m, x.cumRate), 0);
+    printDoc(`<h1>請求書</h1><div class="row"><div><div class="to">${esc(honorific(d.customer))}</div><p>工事名:${esc(d.title)}<br>工事番号:${esc(p.no)}</p></div><div style="text-align:right">No. ${esc(i.no)}<br>${jpDate(i.date)}</div></div>
+    <div class="row"><div>下記のとおり出来高に基づきご請求申し上げます。<br><span class="big">ご請求金額 ${yen(i.amount + tax)}(税込)</span></div>${fromBlock()}</div>
+    <table><tbody><tr><th style="text-align:left;width:50%">契約金額(税抜)</th><td class="num">${yen(p.contract)}</td></tr><tr><th style="text-align:left">前回までの出来高(累計)</th><td class="num">${prevRate}% / ${yen(prevAmt)}</td></tr><tr><th style="text-align:left">今回までの出来高(累計)</th><td class="num">${i.cumRate}% / ${yen(prevAmt + i.amount)}</td></tr>
+    <tr><th style="text-align:left">今回請求額(税抜)</th><td class="num">${yen(i.amount)}</td></tr><tr><th style="text-align:left">消費税(10%)</th><td class="num">${yen(tax)}</td></tr><tr><th style="text-align:left">今回ご請求額(税込)</th><td class="num"><b>${yen(i.amount + tax)}</b></td></tr><tr><th style="text-align:left">契約残額(税抜)</th><td class="num">${yen(p.contract - prevAmt - i.amount)}</td></tr></tbody></table>
+    <p class="fine">お振込先:架空銀行 サンプル支店(デモ)<br>※本書はデモ用の架空データです。</p>`);
+  },
+  subNew() { formModal('協力業者の登録', SUB_FIELDS, {}, o => { S.subs.push({id: uid(), ...o}); }); },
+  subEdit(id) { const s = subOf(id); formModal('協力業者の編集', SUB_FIELDS, s, o => { Object.assign(s, o); }); },
+  subDel(id) { if (confirm('この協力業者を削除しますか?')) { S.subs = S.subs.filter(s => s.id !== id); save(); render(); } },
+  orderNew() {
+    if (!S.projects.length) return toast('先に受注工事を登録してください'); if (!S.subs.length) return toast('先に協力業者を登録してください');
+    const f = [{k:'projectId', l:'工事', t:'select', o:projOptions(), wide:1}, {k:'subId', l:'協力業者', t:'select', o:S.subs.map(s => [s.id, `${s.name}(${s.trade})`])}, {k:'amount', l:'発注額(税抜・円)', t:'number', req:1}, {k:'note', l:'内容'}];
+    formModal('協力業者への発注', f, {}, o => { if (!(o.amount > 0)) return err('発注額を入力してください'); S.orders.push({id: uid(), no: nextNo('PO-', S.orders), ...o, amount: Number(o.amount)}); toast('発注を登録しました'); },
+      o => { const p = projOf(o.projectId); if (!p.id) return ''; const ord = projOrdered(p) + (Number(o.amount) || 0), g = p.contract - ord; return `この工事の契約額 ${yen(p.contract)} / 登録後の発注累計 ${yen(ord)} → 粗利見込 <b>${yen(g)}</b>(${p.contract ? (g / p.contract * 100).toFixed(1) : 0}%)`; });
+  },
+  orderDel(id) { if (confirm('この発注を削除しますか?')) { S.orders = S.orders.filter(o => o.id !== id); save(); render(); } },
+  payNew(oid) {
+    const o = S.orders.find(x => x.id === oid), cum = ordCum(o), paid = ordPaid(o), pcum = projCum(projOf(o.projectId));
+    formModal('出来高支払の登録:' + o.no + ' ' + subOf(o.subId).name, [{k:'date', l:'支払日', t:'date', req:1, def:today()}, {k:'cumRate', l:`累計出来高率(%)  前回 ${cum}%`, t:'number', req:1, step:'0.1', def: pcum > cum ? pcum : ''}], {}, v => {
+      if (!(v.cumRate > cum && v.cumRate <= 100)) return err(`累計出来高率は ${cum}% より大きく 100% 以下で入力してください`);
+      S.payments.push({id: uid(), orderId: oid, date: v.date, cumRate: v.cumRate, amount: progressAmount(o.amount, v.cumRate, paid)}); toast('支払を登録しました');
+    }, v => { const hint = `<span class="muted">参考:元請側の請求出来高は ${pcum}%</span><br>`; if (v.cumRate === '' || !(v.cumRate > cum && v.cumRate <= 100)) return hint + `発注額 ${yen(o.amount)} / 支払済 ${yen(paid)}`; const a = progressAmount(o.amount, v.cumRate, paid); return hint + `今回支払額 = ${yen(o.amount)} × ${v.cumRate}% − ${yen(paid)} = <b>${yen(a)}</b>(税抜)`; }, '支払を登録');
+  },
+  payDel(id) { if (confirm('この支払を取り消しますか?')) { S.payments = S.payments.filter(y => y.id !== id); save(); render(); } },
+  payCsv() { const rows = [['支払日', '協力業者', '発注No', '工事No', '工事名', '累計出来高(%)', '今回支払額(税抜)', '消費税', '税込']]; [...S.payments].sort((a, b) => a.date.localeCompare(b.date)).forEach(y => { const o = S.orders.find(x => x.id === y.orderId) || {}, p = projOf(o.projectId), t = Math.floor(y.amount * TAX); rows.push([y.date, subOf(o.subId).name, o.no, p.no, dealOf(p.dealId).title, y.cumRate, y.amount, t, y.amount + t]); }); downloadCsv('支払一覧_' + today() + '.csv', rows); },
+  mfNew() { if (!S.projects.length) return toast('先に受注工事を登録してください'); const f = mfFields(); formModal('廃棄物の搬出を記録', f, {status: '未登録', method: '電子(JWNET)'}, o => { S.manifests.push({id: uid(), ...o}); toast('記録しました'); }); },
+  mfEdit(id) { const m = S.manifests.find(x => x.id === id); formModal('マニフェスト編集', mfFields(), m, o => { if (o.status !== '未登録' && o.method !== '紙' && !o.mfNo) return err('登録済以降はマニフェスト番号を入力してください'); Object.assign(m, o); }); },
+  mfDel(id) { if (confirm('この記録を削除しますか?')) { S.manifests = S.manifests.filter(m => m.id !== id); save(); render(); } },
+  mfCsv() { const rows = [['交付日', '工事No', '排出事業場(工事名)', '工事場所', '廃棄物の種類', '数量', '単位', '収集運搬業者', '方式']]; S.manifests.filter(m => m.status === '未登録').forEach(m => { const p = projOf(m.projectId), d = dealOf(p.dealId); rows.push([m.date, p.no, d.title, d.address, m.waste, m.qty, m.unit, subOf(m.subId).name, m.method]); }); downloadCsv('マニフェスト未登録_' + today() + '.csv', rows); },
+  exportJson() { download('kaitai-sms-data_' + today() + '.json', JSON.stringify(S, null, 2), 'application/json'); },
+  importJson(input) { const f = input.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); if (!Array.isArray(d.deals)) throw 0; S = d; load2(); save(); render(); toast('読み込みました'); } catch (e) { toast('読み込めないファイルです'); } input.value = ''; }; r.readAsText(f); },
+  reset() { if (confirm('入力したデータを消して、サンプルデータに戻しますか?')) { S = sample(); save(); render(); toast('サンプルデータに戻しました'); } }
+};
+function load2() { for (const k of Object.keys(sample())) if (!Array.isArray(S[k])) S[k] = []; }
+function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+function downloadCsv(name, rows) { const csv = rows.map(r => r.map(v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }).join(',')).join('\r\n'); download(name, '﻿' + csv, 'text/csv'); }
+
+/* ============ 画面切替 ============ */
+const VIEWS = {dashboard:['ダッシュボード', vDash], deals:['見込み客・案件', vDeals], estimates:['見積', vEstimates], projects:['受注工事・電子契約', vProjects], billing:['出来高請求', vBilling], subs:['協力業者・支払', vSubs], manifests:['マニフェスト', vManifests], data:['データ管理', vData]};
+let view = (location.hash.slice(1) in VIEWS) ? location.hash.slice(1) : 'dashboard';
+function go(v) { view = v; location.hash = v; render(); window.scrollTo(0, 0); }
+function render() {
+  $('#nav').innerHTML = Object.entries(VIEWS).map(([k, [t]]) => `<a class="${k === view ? 'active' : ''}" onclick="go('${k}')">${t}</a>`).join('');
+  $('#view').innerHTML = VIEWS[view][1]();
+  document.title = VIEWS[view][0] + ' | 解体工事 販売管理システム(デモ)';
+}
+window.addEventListener('hashchange', () => { const v = location.hash.slice(1); if (v in VIEWS && v !== view) { view = v; render(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+load(); render();
+</script>
+</body>
+</html>
